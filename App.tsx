@@ -5,7 +5,7 @@ import Papa from 'papaparse';
 import { 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area 
 } from 'recharts';
-import { Search, Activity, Loader2, BrainCircuit, Calendar, TrendingUp, RefreshCw, Heart, Quote, Zap } from 'lucide-react';
+import { Search, Loader2, BrainCircuit, Calendar, TrendingUp, RefreshCw, Heart, Quote, Zap } from 'lucide-react';
 import StatsCard from './components/StatsCard';
 
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/e/2PACX-1vTL-7osicYdHztOycmQngj3FA4NU56okNHSg0q7lqlfBeb9oL73mPqxcRB8oKfe2QigzGsuk3xVPeNj/pub?output=csv`;
@@ -34,7 +34,8 @@ const App: React.FC = () => {
             const intensityKey = Object.keys(row).find(k => k.includes('보강훈련 강도')) || 'intensity';
             const intensity = parseInt(row[intensityKey]) || 0;
             const heartRateKey = Object.keys(row).find(key => key.includes('평균 심박수')) || 'duration';
-            const avgHeartRate = parseInt(row[heartRateKey]?.toString().replace(/[^0-9]/g, '')) || 0;
+            const avgHeartRateValue = row[heartRateKey]?.toString().replace(/[^0-9]/g, '') || '0';
+            const avgHeartRate = parseInt(avgHeartRateValue) || 0;
             const timestamp = (row['응답일시'] || '').split(' ')[0] || '';
             const conditionScore = parseInt(row['컨디션 체크(*)']) || 3;
             const notes = row['굿송에게 바란다.'] || row['메모'] || '';
@@ -47,7 +48,7 @@ const App: React.FC = () => {
               timestamp, name, trainingType, intensity, duration: avgHeartRate, notes, 
               condition: conditionMapping[conditionScore] || 'Good'
             };
-          }).filter(item => item.name !== "");
+          }).filter((item: TrainingLog) => item.name !== "");
           
           setTrainingData(mappedData);
           setFetchingData(false);
@@ -71,7 +72,8 @@ const App: React.FC = () => {
   const stats = useMemo(() => {
     if (memberLogs.length === 0) return null;
     const avgHeart = Math.round(memberLogs.reduce((acc, curr) => acc + curr.duration, 0) / memberLogs.length);
-    const avgIntensity = (memberLogs.reduce((acc, curr) => acc + curr.intensity, 0) / memberLogs.length).toFixed(1);
+    const avgIntensityNum = memberLogs.reduce((acc, curr) => acc + curr.intensity, 0) / memberLogs.length;
+    const avgIntensity = avgIntensityNum.toFixed(1);
     return { avgHeart, avgIntensity, totalCount: memberLogs.length };
   }, [memberLogs]);
 
@@ -95,7 +97,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
         <Loader2 className="animate-spin text-orange-500" size={48} />
-        <p className="font-bold text-slate-500 italic">데이터 로딩 중...</p>
+        <p className="font-bold text-slate-500 italic uppercase tracking-widest">Loading Club Data...</p>
       </div>
     );
   }
@@ -105,9 +107,7 @@ const App: React.FC = () => {
       <header className="bg-white/95 backdrop-blur-md border-b p-3 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-4">
           <div className="flex items-center gap-4">
-            {/* Logo area: More detailed representation of the provided image */}
             <div className="relative w-16 h-16 bg-gradient-to-tr from-[#E68E33] to-[#F7C144] rounded-full flex flex-col items-center justify-center overflow-hidden border-2 border-white shadow-md">
-              {/* Skyline silhouette based on image */}
               <div className="absolute top-1 w-full flex items-end justify-center gap-[1px] opacity-40">
                 <div className="w-1.5 h-3 bg-[#2D2926]"></div>
                 <div className="w-1 h-5 bg-[#2D2926]"></div>
@@ -117,7 +117,6 @@ const App: React.FC = () => {
                 <div className="w-2 h-10 bg-[#2D2926]"></div>
                 <div className="w-1 h-4 bg-[#2D2926]"></div>
               </div>
-              {/* Main text centered */}
               <div className="z-10 flex flex-col items-center mt-3">
                 <span className="text-[12px] font-black text-[#2D2926] italic leading-none tracking-tighter">Goodsong</span>
                 <div className="w-8 h-[1px] bg-[#2D2926] my-[2px]"></div>
@@ -199,9 +198,9 @@ const App: React.FC = () => {
             </section>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <StatsCard label="평균 심박수" value={`${stats?.avgHeart} BPM`} icon={<Heart className="text-white" size={22} />} colorClass="bg-rose-500 shadow-xl shadow-rose-100" />
-              <StatsCard label="평균 훈련강도" value={`${stats?.avgIntensity}/10`} icon={<TrendingUp className="text-white" size={22} />} colorClass="bg-orange-500 shadow-xl shadow-orange-100" />
-              <StatsCard label="기록된 세션" value={`${stats?.totalCount}회`} icon={<Calendar className="text-white" size={22} />} colorClass="bg-[#2D2926] shadow-xl shadow-slate-200" />
+              <StatsCard label="평균 심박수" value={`${stats?.avgHeart} BPM`} icon={<Heart className="text-white" size={22} />} colorClass="bg-rose-500" />
+              <StatsCard label="평균 훈련강도" value={`${stats?.avgIntensity}/10`} icon={<TrendingUp className="text-white" size={22} />} colorClass="bg-orange-500" />
+              <StatsCard label="기록된 세션" value={`${stats?.totalCount}회`} icon={<Calendar className="text-white" size={22} />} colorClass="bg-[#2D2926]" />
             </div>
 
             <section className="bg-white p-10 rounded-[3rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.02)] border border-slate-100">
@@ -221,12 +220,11 @@ const App: React.FC = () => {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="5 5" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="timestamp" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} dy={15} fontWeight="700" />
+                    <XAxis dataKey="timestamp" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} dy={15} />
                     <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
                     <Tooltip 
                       contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 30px 60px -12px rgb(0 0 0 / 0.15)', padding: '20px' }}
                       labelStyle={{ fontWeight: '900', color: '#0f172a', marginBottom: '8px', fontSize: '18px' }}
-                      itemStyle={{ fontWeight: '800', color: '#f97316' }}
                     />
                     <Area type="monotone" dataKey="duration" name="심박수" stroke="#f97316" strokeWidth={5} fillOpacity={1} fill="url(#colorHeart)" dot={{ r: 6, fill: '#f97316', strokeWidth: 3, stroke: '#fff' }} activeDot={{ r: 9, strokeWidth: 0, fill: '#2D2926' }} />
                   </AreaChart>
@@ -258,7 +256,7 @@ const App: React.FC = () => {
                     <tr>
                       <th className="px-12 py-6">Date</th>
                       <th className="px-12 py-6">Training Type</th>
-                      <th className="px-12 py-6 text-center">훈련강도</th>
+                      <th className="px-12 py-6 text-center">Intensity</th>
                       <th className="px-12 py-6 text-center">BPM</th>
                       <th className="px-12 py-6 text-right">Status</th>
                     </tr>
