@@ -1,0 +1,5 @@
+{
+  "name": "Member Training Feedback Dashboard",
+  "description": "An interactive dashboard for gym members to search their training history and receive AI-powered feedback based on their performance logs.",
+  "requestFramePermissions": []
+}
