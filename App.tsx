@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { getMemberFeedback } from './services/geminiService';
 import { TrainingLog } from './types';
@@ -147,7 +146,7 @@ const App: React.FC = () => {
             <Activity className="text-indigo-600" size={24} />
             <h1 className="text-xl font-black text-slate-900 tracking-tighter uppercase italic">Good morning song-do</h1>
           </div>
-          <button onClick={fetchData} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+          <button onClick={fetchData} title="새로고침" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
             <RefreshCw size={18} className="text-slate-400" />
           </button>
         </div>
@@ -167,7 +166,7 @@ const App: React.FC = () => {
             <input 
               type="text"
               placeholder="이름을 입력하세요 (예: 이창민3218)"
-              className="w-full pl-8 pr-32 py-6 rounded-[2.5rem] outline-none text-xl font-bold transition-all placeholder:text-slate-300"
+              className="w-full pl-8 pr-32 py-6 rounded-[2.5rem] outline-none text-xl font-bold transition-all placeholder:text-slate-300 focus:ring-2 focus:ring-indigo-100"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
@@ -175,7 +174,7 @@ const App: React.FC = () => {
             <button 
               onClick={() => handleSearch(searchTerm)}
               disabled={loading}
-              className="absolute right-3 top-3 bottom-3 bg-indigo-600 hover:bg-indigo-700 text-white px-10 rounded-full font-black transition-all flex items-center gap-2"
+              className="absolute right-3 top-3 bottom-3 bg-indigo-600 hover:bg-indigo-700 text-white px-10 rounded-full font-black transition-all flex items-center justify-center min-w-[120px]"
             >
               {loading ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
             </button>
@@ -225,7 +224,7 @@ const App: React.FC = () => {
                 <div className="bg-white border border-slate-100 p-6 rounded-3xl flex justify-between items-center shadow-sm">
                   <div className="flex items-center gap-3">
                     <Calendar className="text-indigo-600" size={24} />
-                    <span className="font-bold text-slate-500">누적 훈련횟수 (QR체크 기준)</span>
+                    <span className="font-bold text-slate-500">누적 훈련횟수</span>
                   </div>
                   <span className="text-3xl font-black text-slate-900">{stats?.totalWorkouts}회</span>
                 </div>
@@ -239,9 +238,9 @@ const App: React.FC = () => {
                 <div className="bg-white border border-slate-100 p-6 rounded-3xl flex justify-between items-center shadow-sm">
                   <div className="flex items-center gap-3">
                     <TrendingUp className="text-amber-600" size={24} />
-                    <span className="font-bold text-slate-500">보강 훈련 평균 강도</span>
+                    <span className="font-bold text-slate-500">보강 평균 강도</span>
                   </div>
-                  <span className="text-3xl font-black text-amber-600">{stats?.avgIntensity ? `${stats.avgIntensity} / 10` : "- / 10"}</span>
+                  <span className="text-3xl font-black text-amber-600">{stats?.avgIntensity ? `${stats.avgIntensity}/10` : "-/10"}</span>
                 </div>
               </div>
             </div>
@@ -307,7 +306,8 @@ const App: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{log.timestamp}</span>
                         <div className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
-                          log.condition === 'Excellent' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+                          log.condition === 'Excellent' ? 'bg-emerald-100 text-emerald-600' : 
+                          log.condition === 'Good' ? 'bg-blue-100 text-blue-600' : 'bg-amber-100 text-amber-600'
                         }`}>{log.condition}</div>
                       </div>
                       <h4 className="text-2xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{log.trainingType}</h4>
@@ -315,7 +315,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="flex gap-12 shrink-0 bg-white p-6 rounded-3xl shadow-sm">
                       <div className="text-center">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">BO-GANG INTENSITY</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">INTENSITY</p>
                         <p className="text-2xl font-black text-slate-900">{log.intensity || "-"}</p>
                       </div>
                       <div className="text-center">
@@ -338,12 +338,6 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
-
-      <style>{`
-        .custom-scroll::-webkit-scrollbar { width: 5px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
-      `}</style>
     </div>
   );
 };
