@@ -46,7 +46,7 @@ const App: React.FC = () => {
 
             return { 
               timestamp, name, trainingType, intensity, duration: avgHeartRate, notes, 
-              condition: conditionMapping[conditionScore] || 'Good'
+              condition: (conditionMapping[conditionScore] || 'Good') as TrainingLog['condition']
             };
           }).filter((item: TrainingLog) => item.name !== "");
           
@@ -73,8 +73,7 @@ const App: React.FC = () => {
     if (memberLogs.length === 0) return null;
     const avgHeart = Math.round(memberLogs.reduce((acc, curr) => acc + curr.duration, 0) / memberLogs.length);
     const avgIntensityNum = memberLogs.reduce((acc, curr) => acc + curr.intensity, 0) / memberLogs.length;
-    const avgIntensity = avgIntensityNum.toFixed(1);
-    return { avgHeart, avgIntensity, totalCount: memberLogs.length };
+    return { avgHeart, avgIntensity: avgIntensityNum.toFixed(1), totalCount: memberLogs.length };
   }, [memberLogs]);
 
   const handleSearch = async (name: string) => {
@@ -131,10 +130,7 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-4">
-            <span className="hidden lg:block text-[10px] font-black text-slate-400 uppercase tracking-widest border-r pr-4 mr-2 border-slate-200">
-              AI Powered Performance Tracker
-            </span>
-            <button onClick={() => window.location.reload()} className="p-2 hover:bg-orange-50 rounded-full transition-colors border border-slate-100 bg-white">
+            <button onClick={() => fetchData()} className="p-2 hover:bg-orange-50 rounded-full transition-colors border border-slate-100 bg-white">
               <RefreshCw size={18} className="text-orange-500" />
             </button>
           </div>
@@ -144,10 +140,10 @@ const App: React.FC = () => {
       <main className="max-w-5xl mx-auto p-4 md:p-6">
         <div className="relative mb-14 mt-10">
           <div className="absolute inset-0 bg-orange-500/5 blur-[100px] rounded-full"></div>
-          <div className="relative shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] rounded-full overflow-hidden border border-slate-200 bg-white flex items-center pr-2">
+          <div className="relative shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] rounded-full border border-slate-200 bg-white flex items-center pr-2 overflow-hidden">
             <input 
               className="w-full p-5 md:p-7 pl-10 outline-none font-bold text-xl text-slate-800 placeholder:text-slate-300 bg-transparent"
-              placeholder="분석할 회원의 이름을 입력하세요"
+              placeholder="회원 이름을 입력하세요 (예: 강종원)"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch(searchTerm)}
@@ -163,123 +159,72 @@ const App: React.FC = () => {
 
         {loading ? (
           <div className="flex flex-col items-center py-24 gap-8">
-            <div className="relative">
-              <div className="absolute inset-0 bg-orange-400/20 blur-2xl animate-pulse rounded-full"></div>
-              <BrainCircuit className="relative text-orange-500 animate-bounce" size={80} />
-            </div>
-            <div className="text-center space-y-2">
-              <p className="text-2xl font-black text-slate-900 tracking-tighter italic uppercase">Deep Analysis Underway</p>
-              <p className="text-slate-400 font-medium">데이터를 기반으로 최적의 훈련 제언을 생성 중입니다.</p>
-            </div>
+            <BrainCircuit className="text-orange-500 animate-pulse" size={80} />
+            <p className="text-xl font-bold text-slate-400 italic">AI 코치가 분석 중입니다...</p>
           </div>
         ) : selectedMember && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 space-y-10">
-            
-            <section className="bg-white p-8 md:p-12 rounded-[3rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.04)] border border-slate-100 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12 pointer-events-none">
-                <div className="w-80 h-80 bg-orange-500 rounded-full blur-[100px]"></div>
-              </div>
+          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
+            <section className="bg-white p-8 md:p-12 rounded-[3rem] shadow-xl border border-slate-100 relative overflow-hidden">
               <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-8">
-                  <span className="bg-[#2D2926] text-white text-[10px] font-black px-5 py-2 rounded-full uppercase tracking-[0.2em] shadow-lg">
-                    AI Performance Coach Insight
-                  </span>
+                <div className="flex items-center gap-3 mb-6">
+                  <span className="bg-orange-500 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest">AI COACH</span>
                 </div>
-                <h2 className="text-5xl md:text-6xl font-black text-[#2D2926] mb-10 tracking-tighter italic">
-                  <span className="text-orange-500 uppercase">{selectedMember}</span>'s REPORT
+                <h2 className="text-4xl md:text-5xl font-black text-[#2D2926] mb-8 tracking-tighter italic uppercase">
+                  {selectedMember}'s Report
                 </h2>
-                <div className="bg-orange-50/40 p-8 md:p-10 rounded-[2.5rem] border border-orange-100/50 leading-relaxed shadow-inner">
-                  <Quote className="text-orange-400 mb-6 opacity-40" size={40} />
-                  <p className="text-2xl md:text-3xl font-bold text-slate-800 italic leading-[1.45] tracking-tight">
+                <div className="bg-orange-50/50 p-8 rounded-[2rem] border border-orange-100 relative">
+                  <Quote className="text-orange-200 absolute top-4 left-4" size={40} />
+                  <p className="text-xl md:text-2xl font-bold text-slate-800 italic leading-relaxed relative z-10 pl-6">
                     {aiFeedback?.aiInsight}
                   </p>
                 </div>
               </div>
             </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <StatsCard label="평균 심박수" value={`${stats?.avgHeart} BPM`} icon={<Heart className="text-white" size={22} />} colorClass="bg-rose-500" />
-              <StatsCard label="평균 훈련강도" value={`${stats?.avgIntensity}/10`} icon={<TrendingUp className="text-white" size={22} />} colorClass="bg-orange-500" />
-              <StatsCard label="기록된 세션" value={`${stats?.totalCount}회`} icon={<Calendar className="text-white" size={22} />} colorClass="bg-[#2D2926]" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <StatsCard label="평균 심박수" value={`${stats?.avgHeart} BPM`} icon={<Heart className="text-white" size={20} />} colorClass="bg-rose-500" />
+              <StatsCard label="평균 강도" value={`${stats?.avgIntensity}/10`} icon={<TrendingUp className="text-white" size={20} />} colorClass="bg-orange-500" />
+              <StatsCard label="훈련 횟수" value={`${stats?.totalCount}회`} icon={<Calendar className="text-white" size={20} />} colorClass="bg-slate-800" />
             </div>
 
-            <section className="bg-white p-10 rounded-[3rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.02)] border border-slate-100">
-              <div className="flex justify-between items-center mb-12">
-                <h3 className="text-2xl font-black text-[#2D2926] flex items-center gap-4 italic uppercase tracking-tighter">
-                  <div className="w-3 h-10 bg-orange-500 rounded-full"></div>
-                  Performance Trends
-                </h3>
-              </div>
-              <div className="h-[400px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={memberLogs}>
-                    <defs>
-                      <linearGradient id="colorHeart" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.25}/>
-                        <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="5 5" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="timestamp" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} dy={15} />
-                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} domain={['dataMin - 5', 'dataMax + 5']} />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 30px 60px -12px rgb(0 0 0 / 0.15)', padding: '20px' }}
-                      labelStyle={{ fontWeight: '900', color: '#0f172a', marginBottom: '8px', fontSize: '18px' }}
-                    />
-                    <Area type="monotone" dataKey="duration" name="심박수" stroke="#f97316" strokeWidth={5} fillOpacity={1} fill="url(#colorHeart)" dot={{ r: 6, fill: '#f97316', strokeWidth: 3, stroke: '#fff' }} activeDot={{ r: 9, strokeWidth: 0, fill: '#2D2926' }} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </section>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {aiFeedback?.recommendations.map((rec, i) => (
-                <div key={i} className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col gap-6 relative overflow-hidden group hover:border-orange-200 transition-all duration-300">
-                  <div className="bg-orange-100 w-14 h-14 rounded-2xl flex items-center justify-center text-orange-600 font-black text-2xl group-hover:bg-[#2D2926] group-hover:text-white transition-colors duration-500 shadow-sm">
+                <div key={i} className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col gap-4 group hover:border-orange-200 transition-all">
+                  <div className="bg-orange-100 w-12 h-12 rounded-xl flex items-center justify-center text-orange-600 font-black text-xl group-hover:bg-orange-500 group-hover:text-white transition-all">
                     {i + 1}
                   </div>
-                  <p className="font-bold text-xl relative z-10 leading-tight tracking-tight text-slate-800">{rec}</p>
-                  <div className="absolute right-6 top-6 opacity-[0.03] group-hover:opacity-10 transition-opacity">
-                    <Zap size={60} className="text-orange-500" />
-                  </div>
+                  <p className="font-bold text-lg text-slate-800 leading-tight">{rec}</p>
                 </div>
               ))}
             </div>
 
-            <section className="bg-white rounded-[3rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.02)] border border-slate-100 overflow-hidden">
-              <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-slate-50/20">
-                <h3 className="text-2xl font-black text-[#2D2926] tracking-tight italic uppercase tracking-tighter">Detailed Training History</h3>
+            <section className="bg-white rounded-[3rem] border border-slate-100 overflow-hidden shadow-sm">
+              <div className="p-8 border-b bg-slate-50/50">
+                <h3 className="font-black text-xl uppercase tracking-tighter italic">Training History</h3>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.25em]">
+                <table className="w-full">
+                  <thead className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest">
                     <tr>
-                      <th className="px-12 py-6">Date</th>
-                      <th className="px-12 py-6">Training Type</th>
-                      <th className="px-12 py-6 text-center">Intensity</th>
-                      <th className="px-12 py-6 text-center">BPM</th>
-                      <th className="px-12 py-6 text-right">Status</th>
+                      <th className="px-8 py-4 text-left">Date</th>
+                      <th className="px-8 py-4 text-left">Activity</th>
+                      <th className="px-8 py-4 text-center">BPM</th>
+                      <th className="px-8 py-4 text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y">
                     {memberLogs.slice().reverse().map((log, i) => (
-                      <tr key={i} className="hover:bg-orange-50/20 transition-all group">
-                        <td className="px-12 py-8 text-xs font-bold text-slate-400">{log.timestamp}</td>
-                        <td className="px-12 py-8">
-                          <div className="font-black text-[#2D2926] text-xl mb-2">{log.trainingType}</div>
-                          <div className="text-sm text-slate-500 font-medium line-clamp-1 group-hover:line-clamp-none transition-all duration-500 max-w-md">{log.notes}</div>
+                      <tr key={i} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-8 py-6 text-sm font-bold text-slate-400">{log.timestamp}</td>
+                        <td className="px-8 py-6">
+                          <div className="font-black text-slate-800">{log.trainingType}</div>
+                          <div className="text-xs text-slate-500 mt-1">{log.notes}</div>
                         </td>
-                        <td className="px-12 py-8 text-center">
-                          <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#2D2926] text-white font-black text-sm shadow-lg shadow-slate-200">
-                            {log.intensity}
-                          </span>
-                        </td>
-                        <td className="px-12 py-8 text-center font-black text-slate-700 text-xl">{log.duration}</td>
-                        <td className="px-12 py-8 text-right">
-                          <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${
+                        <td className="px-8 py-6 text-center font-black text-orange-500">{log.duration}</td>
+                        <td className="px-8 py-6 text-right">
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${
                             log.condition === 'Excellent' ? 'bg-emerald-500 text-white' :
-                            log.condition === 'Good' ? 'bg-orange-500 text-white' :
-                            'bg-slate-400 text-white'
+                            log.condition === 'Good' ? 'bg-orange-500 text-white' : 'bg-slate-400 text-white'
                           }`}>
                             {log.condition}
                           </span>
