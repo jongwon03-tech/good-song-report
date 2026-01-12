@@ -2,14 +2,23 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { TrainingLog } from "../types";
 
 export const getMemberFeedback = async (name: string, logs: TrainingLog[]) => {
-  // 클라이언트 환경에서 process.env 또는 import.meta.env 대응
-  const apiKey = (typeof process !== 'undefined' && process.env?.API_KEY) || "";
+  // 1. Vite 환경 변수 우선 확인 (VITE_API_KEY)
+  // 2. Node/Vercel 환경 변수 확인 (API_KEY)
+  // 3. 마지막으로 전역 process 객체 확인
+  const apiKey = (import.meta as any).env?.VITE_API_KEY || 
+                 (import.meta as any).env?.API_KEY || 
+                 (typeof process !== 'undefined' ? process.env?.API_KEY : "");
   
   if (!apiKey) {
     console.error("API_KEY is missing.");
     return {
-      aiInsight: `${name}님, 현재 Vercel 설정에서 API_KEY가 등록되지 않았습니다. 대시보드 Settings -> Environment Variables에서 API_KEY를 추가해 주세요.`,
-      recommendations: ["Vercel 환경변수 설정 확인", "구글 AI 스튜디오 키 발급 확인", "Redeploy 실행"]
+      aiInsight: `${name}님, 죄송합니다. 현재 AI 분석용 API 키가 인식되지 않고 있습니다. 
+      Vercel 대시보드에서 'VITE_API_KEY'라는 이름으로 키를 등록했는지 확인하고 반드시 'Redeploy'를 해주세요.`,
+      recommendations: [
+        "Vercel Settings -> Environment Variables에서 'VITE_API_KEY' 추가",
+        "Key 이름을 'API_KEY' 대신 'VITE_API_KEY'로 변경 시도",
+        "설정 후 Deployments 메뉴에서 'Redeploy' 실행"
+      ]
     };
   }
 
@@ -51,11 +60,11 @@ export const getMemberFeedback = async (name: string, logs: TrainingLog[]) => {
   } catch (error) {
     console.error("Gemini Error:", error);
     return {
-      aiInsight: `${name}님, 최근 훈련 데이터를 분석한 결과 심폐 효율성이 향상되고 있습니다. 현재 API 할당량 초과 또는 네트워크 문제로 상세 분석이 지연되고 있으나, 기록상으로는 아주 훌륭한 추세입니다.`,
+      aiInsight: `${name}님, 데이터를 분석하는 과정에서 일시적인 오류가 발생했습니다. 하지만 기록된 데이터상으로는 꾸준한 훈련 성과가 나타나고 있습니다.`,
       recommendations: [
-        "일관된 훈련 빈도를 유지하세요",
-        "훈련 전후 충분한 스트레칭",
-        "컨디션에 따른 페이스 조절"
+        "현재 데이터 기록은 정상입니다.",
+        "잠시 후 새로고침하여 다시 분석을 요청해 주세요.",
+        "꾸준한 훈련은 배신하지 않습니다!"
       ]
     };
   }
