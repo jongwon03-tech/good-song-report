@@ -105,26 +105,28 @@ const App: React.FC = () => {
       <header className="bg-white/95 backdrop-blur-md border-b p-3 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-4">
           <div className="flex items-center gap-4">
-            {/* Logo area inspired by the provided image */}
-            <div className="relative w-14 h-14 bg-gradient-to-b from-orange-400 to-yellow-500 rounded-full flex flex-col items-center justify-center overflow-hidden border border-orange-200 shadow-sm">
-              <div className="absolute top-2 w-full flex justify-center opacity-30">
-                {/* Simplified Skyline representation */}
-                <div className="flex items-end gap-[1px]">
-                  <div className="w-1 h-3 bg-slate-900"></div>
-                  <div className="w-1.5 h-5 bg-slate-900"></div>
-                  <div className="w-1 h-4 bg-slate-900"></div>
-                  <div className="w-2 h-7 bg-slate-900"></div>
-                  <div className="w-1 h-4 bg-slate-900"></div>
-                </div>
+            {/* Logo area: More detailed representation of the provided image */}
+            <div className="relative w-16 h-16 bg-gradient-to-tr from-[#E68E33] to-[#F7C144] rounded-full flex flex-col items-center justify-center overflow-hidden border-2 border-white shadow-md">
+              {/* Skyline silhouette based on image */}
+              <div className="absolute top-1 w-full flex items-end justify-center gap-[1px] opacity-40">
+                <div className="w-1.5 h-3 bg-[#2D2926]"></div>
+                <div className="w-1 h-5 bg-[#2D2926]"></div>
+                <div className="w-2 h-7 bg-[#2D2926]"></div>
+                <div className="w-1.5 h-4 bg-[#2D2926]"></div>
+                <div className="w-1 h-6 bg-[#2D2926]"></div>
+                <div className="w-2 h-10 bg-[#2D2926]"></div>
+                <div className="w-1 h-4 bg-[#2D2926]"></div>
               </div>
-              <span className="text-[10px] font-black text-slate-900 leading-tight z-10 italic">Goodsong</span>
-              <div className="absolute bottom-1.5 w-full text-center">
-                 <span className="text-[6px] font-bold text-slate-900/60 uppercase tracking-tighter">Running Club</span>
+              {/* Main text centered */}
+              <div className="z-10 flex flex-col items-center mt-3">
+                <span className="text-[12px] font-black text-[#2D2926] italic leading-none tracking-tighter">Goodsong</span>
+                <div className="w-8 h-[1px] bg-[#2D2926] my-[2px]"></div>
+                <span className="text-[5px] font-bold text-[#2D2926] uppercase tracking-[0.2em] leading-none">Running Club</span>
               </div>
             </div>
             <div className="hidden sm:block">
-              <h1 className="font-black text-2xl tracking-tighter text-[#2D2926] italic">
-                <span className="text-orange-500">GOODSONG</span> ANALYSIS
+              <h1 className="font-black text-2xl tracking-tighter text-[#2D2926] italic uppercase">
+                <span className="text-orange-500">Goodsong</span> Analysis
               </h1>
             </div>
           </div>
@@ -167,7 +169,7 @@ const App: React.FC = () => {
               <BrainCircuit className="relative text-orange-500 animate-bounce" size={80} />
             </div>
             <div className="text-center space-y-2">
-              <p className="text-2xl font-black text-slate-900 tracking-tight tracking-tighter italic uppercase">Deep Analysis Underway</p>
+              <p className="text-2xl font-black text-slate-900 tracking-tighter italic uppercase">Deep Analysis Underway</p>
               <p className="text-slate-400 font-medium">데이터를 기반으로 최적의 훈련 제언을 생성 중입니다.</p>
             </div>
           </div>
