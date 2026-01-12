@@ -2,7 +2,8 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { TrainingLog } from "../types";
 
 export const getMemberFeedback = async (name: string, logs: TrainingLog[]) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // 반드시 객체 형태 { apiKey: ... }로 전달해야 함
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
   
   const logSummary = logs.map(l => 
     `- 일자: ${l.timestamp}, 훈련: ${l.trainingType}, 강도: ${l.intensity}/10, 심박수: ${l.duration}BPM, 비고: ${l.notes}`
@@ -27,6 +28,7 @@ export const getMemberFeedback = async (name: string, logs: TrainingLog[]) => {
       }
     });
 
+    // .text()가 아닌 .text 속성 사용
     const text = response.text || "{}";
     return JSON.parse(text);
   } catch (error) {
