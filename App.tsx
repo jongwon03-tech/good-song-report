@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { getMemberFeedback } from './services/geminiService';
 import { TrainingLog } from './types';
@@ -218,7 +219,7 @@ const App: React.FC = () => {
                         <td className="px-8 py-6 text-sm font-bold text-slate-400">{log.timestamp}</td>
                         <td className="px-8 py-6">
                           <div className="font-black text-slate-800">{log.trainingType}</div>
-                          <div className="text-xs text-slate-500 mt-1">{log.notes}</div>
+                          {/* 코멘트 노출 부분(notes)을 제거했습니다. */}
                         </td>
                         <td className="px-8 py-6 text-center font-black text-orange-500">{log.duration}</td>
                         <td className="px-8 py-6 text-right">
