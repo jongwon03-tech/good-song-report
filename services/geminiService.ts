@@ -2,9 +2,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { TrainingLog } from "../types";
 
 export const getMemberFeedback = async (name: string, logs: TrainingLog[]) => {
-  // 1. Vite 환경 변수 우선 확인 (VITE_API_KEY)
-  // 2. Node/Vercel 환경 변수 확인 (API_KEY)
-  // 3. 마지막으로 전역 process 객체 확인
   const apiKey = (import.meta as any).env?.VITE_API_KEY || 
                  (import.meta as any).env?.API_KEY || 
                  (typeof process !== 'undefined' ? process.env?.API_KEY : "");
@@ -12,31 +9,41 @@ export const getMemberFeedback = async (name: string, logs: TrainingLog[]) => {
   if (!apiKey) {
     console.error("API_KEY is missing.");
     return {
-      aiInsight: `${name}님, 죄송합니다. 현재 AI 분석용 API 키가 인식되지 않고 있습니다. 
-      Vercel 대시보드에서 'VITE_API_KEY'라는 이름으로 키를 등록했는지 확인하고 반드시 'Redeploy'를 해주세요.`,
-      recommendations: [
-        "Vercel Settings -> Environment Variables에서 'VITE_API_KEY' 추가",
-        "Key 이름을 'API_KEY' 대신 'VITE_API_KEY'로 변경 시도",
-        "설정 후 Deployments 메뉴에서 'Redeploy' 실행"
-      ]
+      aiInsight: `${name}님, 죄송합니다. 현재 AI 분석용 API 키가 인식되지 않고 있습니다. Vercel 대시보드에서 'VITE_API_KEY' 등록을 확인해주세요.`,
+      recommendations: ["VITE_API_KEY 환경변수 확인", "Redeploy 실행"]
     };
   }
 
   const ai = new GoogleGenAI({ apiKey });
+
+  // 날짜 정렬 및 기간 계산
+  const sortedLogs = [...logs].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  const startDate = sortedLogs[0]?.timestamp;
+  const endDate = sortedLogs[sortedLogs.length - 1]?.timestamp;
   
+  // 총 기간(일수) 계산
+  const diffTime = Math.abs(new Date(endDate).getTime() - new Date(startDate).getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
   const logSummary = logs.map(l => 
-    `- 일자: ${l.timestamp}, 훈련: ${l.trainingType}, 훈련강도: ${l.intensity}/10, 심박수: ${l.duration}BPM, 비고: ${l.notes}, 컨디션: ${l.condition}`
+    `- 일자: ${l.timestamp}, 훈련: ${l.trainingType}, 강도: ${l.intensity}/10, 심박수: ${l.duration}BPM, 컨디션: ${l.condition}`
   ).join('\n');
 
   const prompt = `당신은 'Good morning song-do (굿모닝송도)' 러닝 클럽의 수석 데이터 분석 코치입니다.
-회원 '${name}'님의 최근 훈련 데이터를 기반으로 매우 구체적이고 전문적인 성과 보고서를 작성하세요.
+회원 '${name}'님의 훈련 데이터를 분석하여 리포트를 작성하세요.
+
+[핵심 데이터 개요]
+- 분석 대상 기간: ${startDate} ~ ${endDate} (총 ${diffDays}일간)
+- 해당 기간 내 실제 훈련 횟수: ${logs.length}회
+- 훈련 밀도: 약 ${(logs.length / (diffDays / 7)).toFixed(1)}회/주
 
 [분석 지침]
-1. 데이터 패턴 파악: 단순히 나열하지 말고 구체적으로 분석하세요.
-2. aiInsight 작성: 전문적이면서도 열정적인 톤을 유지하세요. (~해요, ~입니다 사용)
-3. recommendations 작성: 분석 내용을 기반으로 실천 가능한 가이드라인 3가지를 제시하세요.
+1. '분석 대상 기간'과 '실제 훈련 횟수'를 대조하여 정확한 코멘트를 작성하세요. 
+   (예: 30일 동안 4회 훈련했다면 "한 달간 꾸준히 주 1회 참여하셨네요"라고 언급하고, 7일 동안 4회라면 "매우 고밀도로 집중 훈련하셨네요"라고 구분)
+2. 절대 실제 기간보다 부풀려 말하지 마세요 (예: 4회 훈련을 4주간의 훈련이라고 일반화 금지).
+3. 전문적이면서도 격려하는 톤을 유지하세요. (~해요, ~입니다 사용)
 
-[훈련 데이터 기록]\n${logSummary}`;
+[세부 훈련 데이터 기록]\n${logSummary}`;
 
   try {
     const response = await ai.models.generateContent({
@@ -60,12 +67,8 @@ export const getMemberFeedback = async (name: string, logs: TrainingLog[]) => {
   } catch (error) {
     console.error("Gemini Error:", error);
     return {
-      aiInsight: `${name}님, 데이터를 분석하는 과정에서 일시적인 오류가 발생했습니다. 하지만 기록된 데이터상으로는 꾸준한 훈련 성과가 나타나고 있습니다.`,
-      recommendations: [
-        "현재 데이터 기록은 정상입니다.",
-        "잠시 후 새로고침하여 다시 분석을 요청해 주세요.",
-        "꾸준한 훈련은 배신하지 않습니다!"
-      ]
+      aiInsight: `${name}님, 최근 훈련 기간 동안의 데이터를 분석 중입니다. 꾸준한 참여가 가장 큰 자산입니다.`,
+      recommendations: ["일관된 훈련 빈도 유지", "심박수 기반의 페이스 조절", "충분한 회복 시간 확보"]
     };
   }
 };
