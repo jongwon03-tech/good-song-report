@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [fetchingData, setFetchingData] = useState(true);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [aiFeedback, setAiFeedback] = useState<{ aiInsight: string, recommendations: string[] } | null>(null);
+  const [maxHeartRate, setMaxHeartRate] = useState<number>(185);
 
   const fetchData = async () => {
     setFetchingData(true);
@@ -173,11 +174,52 @@ const App: React.FC = () => {
                 <h2 className="text-4xl md:text-5xl font-black text-[#2D2926] mb-8 tracking-tighter italic uppercase">
                   {selectedMember}'s Report
                 </h2>
-                <div className="bg-orange-50/50 p-8 rounded-[2rem] border border-orange-100 relative">
+                <div className="bg-orange-50/50 p-8 rounded-[2rem] border border-orange-100 relative mb-8">
                   <Quote className="text-orange-200 absolute top-4 left-4" size={40} />
                   <p className="text-xl md:text-2xl font-bold text-slate-800 italic leading-relaxed relative z-10 pl-6">
                     {aiFeedback?.aiInsight}
                   </p>
+                </div>
+
+                <div className="bg-[#2D2926] text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <Zap size={120} />
+                  </div>
+                  <div className="relative z-10">
+                    <h3 className="text-orange-400 font-black text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <Zap size={16} /> Training Philosophy
+                    </h3>
+                    <p className="text-lg md:text-xl font-bold leading-relaxed mb-6">
+                      "우리 굿송은 <span className="text-orange-400">양극화 8:2 훈련</span>을 지향합니다. 
+                      주중엔 최대한 평소에 <span className="text-orange-400">존 2 심박</span>을 보면서 조깅을 해주시고, 
+                      합동 훈련에서는 <span className="text-orange-400">존 4 심박 이상</span>을 도전해보는걸 추천드립니다."
+                    </p>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+                      <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+                        <div className="text-white/50 text-xs font-black uppercase tracking-widest mb-2">Zone 2 (Jogging)</div>
+                        <div className="text-2xl font-black text-orange-400">
+                          {Math.round(maxHeartRate * 0.6)} - {Math.round(maxHeartRate * 0.7)} <span className="text-xs text-white/50">BPM</span>
+                        </div>
+                      </div>
+                      <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+                        <div className="text-white/50 text-xs font-black uppercase tracking-widest mb-2">Zone 4 (High Intensity)</div>
+                        <div className="text-2xl font-black text-rose-400">
+                          {Math.round(maxHeartRate * 0.8)} - {Math.round(maxHeartRate * 0.9)} <span className="text-xs text-white/50">BPM</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex items-center gap-4">
+                      <label className="text-xs font-bold text-white/50 uppercase tracking-widest">Your Max HR:</label>
+                      <input 
+                        type="number" 
+                        value={maxHeartRate} 
+                        onChange={(e) => setMaxHeartRate(parseInt(e.target.value) || 0)}
+                        className="bg-white/10 border border-white/20 rounded-lg px-3 py-1 text-sm font-bold w-20 focus:outline-none focus:border-orange-400 transition-colors"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
