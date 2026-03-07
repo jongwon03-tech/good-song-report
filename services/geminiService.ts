@@ -26,8 +26,12 @@ export const getMemberFeedback = async (name: string, logs: TrainingLog[]) => {
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
   const logSummary = logs.map(l => 
-    `- 일자: ${l.timestamp}, 훈련: ${l.trainingType}, 강도: ${l.intensity}/10, 심박수: ${l.duration}BPM, 컨디션: ${l.condition}`
+    `- 일자: ${l.timestamp}, 훈련: ${l.trainingType}, 강도: ${l.intensity}/10, 평균 심박수: ${l.duration}BPM, 최대 심박수: ${l.maxHeartRate || '미기록'}BPM, 컨디션: ${l.condition}`
   ).join('\n');
+
+  const maxHR = Math.max(...logs.map(l => l.maxHeartRate || 0));
+  const zone2 = { min: Math.round(maxHR * 0.6), max: Math.round(maxHR * 0.7) };
+  const zone4 = { min: Math.round(maxHR * 0.8), max: Math.round(maxHR * 0.9) };
 
   const prompt = `당신은 'Good morning song-do (굿모닝송도)' 러닝 클럽의 수석 데이터 분석 코치입니다.
 회원 '${name}'님의 훈련 데이터를 분석하여 리포트를 작성하세요.
@@ -35,6 +39,11 @@ export const getMemberFeedback = async (name: string, logs: TrainingLog[]) => {
 우리 클럽은 '양극화 8:2 훈련'을 지향합니다. 
 - 주중: 존 2(Zone 2) 심박수 영역에서의 저강도 조깅 (전체 훈련의 80%)
 - 합동 훈련/고강도: 존 4(Zone 4) 심박수 이상의 고강도 훈련 (전체 훈련의 20%)
+
+[회원 심박수 정보]
+- 최대 심박수: ${maxHR > 0 ? `${maxHR} BPM` : '기록 없음 (기본값 185 사용 권장)'}
+- 권장 존 2 (조깅): ${zone2.min} ~ ${zone2.max} BPM
+- 권장 존 4 (고강도): ${zone4.min} ~ ${zone4.max} BPM 이상
 
 [핵심 데이터 개요]
 - 분석 대상 기간: ${startDate} ~ ${endDate} (총 ${diffDays}일간)
@@ -47,6 +56,8 @@ export const getMemberFeedback = async (name: string, logs: TrainingLog[]) => {
    - 평균 심박수가 너무 높다면(존 3에 머무름) 조깅 시 더 천천히 뛸 것을 권장하세요.
    - 고강도 훈련 시 심박수가 충분히 올라가지 않는다면 더 도전적인 훈련을 권장하세요.
 3. 전문적이면서도 격려하는 톤을 유지하세요. (~해요, ~입니다 사용)
+4. 가독성을 위해 내용을 2~3개의 문단으로 나누어 작성하세요. 문단 사이에는 반드시 줄바꿈(\\n)을 포함하세요.
+5. 각 문장은 핵심 내용을 담아 간결하게 작성하세요.
 
 [세부 훈련 데이터 기록]\n${logSummary}`;
 

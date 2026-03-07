@@ -38,6 +38,11 @@ const App: React.FC = () => {
             const heartRateKey = Object.keys(row).find(key => key.includes('평균 심박수')) || 'duration';
             const avgHeartRateValue = row[heartRateKey]?.toString().replace(/[^0-9]/g, '') || '0';
             const avgHeartRate = parseInt(avgHeartRateValue) || 0;
+            
+            const maxHeartRateKey = Object.keys(row).find(key => key.includes('최대 심박수')) || 'maxHeartRate';
+            const maxHeartRateValue = row[maxHeartRateKey]?.toString().replace(/[^0-9]/g, '') || '0';
+            const maxHeartRate = parseInt(maxHeartRateValue) || 0;
+
             const timestamp = (row['응답일시'] || '').split(' ')[0] || '';
             const conditionScore = parseInt(row['컨디션 체크(*)']) || 3;
             const notes = row['굿송에게 바란다.'] || row['메모'] || '';
@@ -47,7 +52,7 @@ const App: React.FC = () => {
             };
 
             return { 
-              timestamp, name, trainingType, intensity, duration: avgHeartRate, notes, 
+              timestamp, name, trainingType, intensity, duration: avgHeartRate, maxHeartRate, notes, 
               condition: (conditionMapping[conditionScore] || 'Good') as TrainingLog['condition']
             };
           }).filter((item: TrainingLog) => item.name !== "");
@@ -89,7 +94,16 @@ const App: React.FC = () => {
 
     setLoading(true);
     setSelectedMember(found.name);
-    const feedback = await getMemberFeedback(found.name, trainingData.filter(l => l.name === found.name));
+    
+    // Update maxHeartRate state based on the maximum recorded value for this member
+    const memberLogs = trainingData.filter(l => l.name === found.name);
+    const absoluteMaxHR = Math.max(...memberLogs.map(l => l.maxHeartRate || 0));
+    
+    if (absoluteMaxHR > 0) {
+      setMaxHeartRate(absoluteMaxHR);
+    }
+
+    const feedback = await getMemberFeedback(found.name, memberLogs);
     setAiFeedback(feedback);
     setLoading(false);
   };
@@ -105,46 +119,52 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FDFCFB] pb-20">
-      <header className="bg-white/95 backdrop-blur-md border-b p-3 sticky top-0 z-50">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-100 p-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-4">
-          <div className="flex items-center gap-4">
-            <div className="relative w-16 h-16 bg-gradient-to-tr from-[#E68E33] to-[#F7C144] rounded-full flex flex-col items-center justify-center overflow-hidden border-2 border-white shadow-md">
-              <div className="absolute top-1 w-full flex items-end justify-center gap-[1px] opacity-40">
-                <div className="w-1.5 h-3 bg-[#2D2926]"></div>
-                <div className="w-1 h-5 bg-[#2D2926]"></div>
-                <div className="w-2 h-7 bg-[#2D2926]"></div>
-                <div className="w-1.5 h-4 bg-[#2D2926]"></div>
-                <div className="w-1 h-6 bg-[#2D2926]"></div>
-                <div className="w-2 h-10 bg-[#2D2926]"></div>
-                <div className="w-1 h-4 bg-[#2D2926]"></div>
+          <div className="flex items-center gap-3">
+            {/* Circular Logo */}
+            <div className="relative w-14 h-14 rounded-full bg-gradient-to-b from-[#F7C144] to-[#E68E33] flex flex-col items-center justify-center overflow-hidden border-2 border-white shadow-md">
+              {/* Vertical Bars Background */}
+              <div className="absolute inset-0 flex items-end justify-center gap-[2px] opacity-10 pb-1">
+                <div className="w-1 h-6 bg-black"></div>
+                <div className="w-1 h-8 bg-black"></div>
+                <div className="w-1 h-10 bg-black"></div>
+                <div className="w-1 h-7 bg-black"></div>
+                <div className="w-1 h-9 bg-black"></div>
               </div>
-              <div className="z-10 flex flex-col items-center mt-3">
-                <span className="text-[12px] font-black text-[#2D2926] italic leading-none tracking-tighter">Goodsong</span>
-                <div className="w-8 h-[1px] bg-[#2D2926] my-[2px]"></div>
-                <span className="text-[5px] font-bold text-[#2D2926] uppercase tracking-[0.2em] leading-none">Running Club</span>
+              {/* Logo Text */}
+              <div className="z-10 flex flex-col items-center">
+                <span className="text-[11px] font-black text-[#2D2926] italic leading-none tracking-tighter">Goodsong</span>
+                <div className="w-8 h-[0.5px] bg-[#2D2926] my-0.5 opacity-50"></div>
+                <span className="text-[5px] font-bold text-[#2D2926] uppercase tracking-[0.05em]">Running Club</span>
               </div>
             </div>
-            <div className="hidden sm:block">
-              <h1 className="font-black text-2xl tracking-tighter text-[#2D2926] italic uppercase">
-                <span className="text-orange-500">Goodsong</span> Analysis
+            {/* Main Text Logo */}
+            <div className="flex items-center">
+              <h1 className="font-black text-2xl tracking-tighter italic uppercase font-display leading-none">
+                <span className="text-[#E68E33]">GOODSONG</span>
+                <span className="text-[#2D2926] ml-2">ANALYSIS</span>
               </h1>
             </div>
           </div>
           
           <div className="flex items-center gap-4">
-            <button onClick={() => fetchData()} className="p-2 hover:bg-orange-50 rounded-full transition-colors border border-slate-100 bg-white">
+            <button onClick={() => fetchData()} className="p-2.5 hover:bg-orange-50 rounded-xl transition-all border border-slate-100 bg-white shadow-sm active:scale-95">
               <RefreshCw size={18} className="text-orange-500" />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto p-4 md:p-6">
-        <div className="relative mb-14 mt-10">
-          <div className="absolute inset-0 bg-orange-500/5 blur-[100px] rounded-full"></div>
-          <div className="relative shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] rounded-full border border-slate-200 bg-white flex items-center pr-2 overflow-hidden">
+      <main className="max-w-6xl mx-auto p-4 md:p-8">
+        <div className="relative mb-16 mt-8 max-w-2xl mx-auto">
+          <div className="absolute inset-0 bg-orange-500/10 blur-[80px] rounded-full"></div>
+          <div className="relative shadow-2xl shadow-slate-200/50 rounded-3xl border border-slate-100 bg-white/80 backdrop-blur-md flex items-center pr-3 overflow-hidden p-1">
+            <div className="pl-6 text-slate-400">
+              <Search size={20} />
+            </div>
             <input 
-              className="w-full p-5 md:p-7 pl-10 outline-none font-bold text-xl text-slate-800 placeholder:text-slate-300 bg-transparent"
+              className="w-full p-4 md:p-5 outline-none font-bold text-lg text-slate-800 placeholder:text-slate-300 bg-transparent"
               placeholder="회원 이름을 입력하세요 (예: 강종원)"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
@@ -152,9 +172,9 @@ const App: React.FC = () => {
             />
             <button 
               onClick={() => handleSearch(searchTerm)} 
-              className="bg-[#2D2926] hover:bg-black text-white p-5 rounded-full transition-all active:scale-95 shadow-xl shadow-slate-200"
+              className="bg-[#2D2926] hover:bg-black text-white px-6 py-3 rounded-2xl transition-all active:scale-95 font-black text-sm uppercase tracking-widest shadow-lg"
             >
-              {loading ? <Loader2 className="animate-spin" size={24} /> : <Search size={28} />}
+              {loading ? <Loader2 className="animate-spin" size={20} /> : "Search"}
             </button>
           </div>
         </div>
@@ -165,119 +185,153 @@ const App: React.FC = () => {
             <p className="text-xl font-bold text-slate-400 italic">AI 코치가 분석 중입니다...</p>
           </div>
         ) : selectedMember && (
-          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
-            <section className="bg-white p-8 md:p-12 rounded-[3rem] shadow-xl border border-slate-100 relative overflow-hidden">
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-6">
-                  <span className="bg-orange-500 text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest">AI COACH</span>
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-700">
+            {/* Bento Grid Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              {/* Main AI Report Card */}
+              <section className="lg:col-span-8 bg-white p-8 md:p-10 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden flex flex-col">
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-3">
+                      <span className="bg-orange-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">AI COACH</span>
+                      <span className="text-slate-300 font-black text-xs uppercase tracking-widest">Analysis Report</span>
+                    </div>
+                    <div className="text-slate-300 font-black text-xs uppercase tracking-widest">
+                      {new Date().toLocaleDateString()}
+                    </div>
+                  </div>
+                  
+                  <h2 className="text-4xl md:text-6xl font-black text-[#2D2926] mb-10 tracking-tighter italic uppercase font-display leading-none">
+                    {selectedMember}<span className="text-orange-500">'s</span><br />Performance
+                  </h2>
+                  
+                  <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 relative group hover:bg-orange-50/30 transition-colors duration-500">
+                    <Quote className="text-slate-200 absolute -top-2 -left-2 group-hover:text-orange-200 transition-colors" size={60} />
+                    <div className="space-y-4 relative z-10 pl-4">
+                      {aiFeedback?.aiInsight.split('\n').filter(p => p.trim()).map((para, idx) => (
+                        <p key={idx} className="text-xl md:text-2xl font-bold text-slate-800 italic leading-relaxed break-keep">
+                          {para}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <h2 className="text-4xl md:text-5xl font-black text-[#2D2926] mb-8 tracking-tighter italic uppercase">
-                  {selectedMember}'s Report
-                </h2>
-                <div className="bg-orange-50/50 p-8 rounded-[2rem] border border-orange-100 relative mb-8">
-                  <Quote className="text-orange-200 absolute top-4 left-4" size={40} />
-                  <p className="text-xl md:text-2xl font-bold text-slate-800 italic leading-relaxed relative z-10 pl-6">
-                    {aiFeedback?.aiInsight}
-                  </p>
+              </section>
+
+              {/* Stats & Philosophy Column */}
+              <div className="lg:col-span-4 flex flex-col gap-6">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 gap-4">
+                  <StatsCard label="평균 심박수" value={`${stats?.avgHeart} BPM`} icon={<Heart className="text-white" size={18} />} colorClass="bg-rose-500" />
+                  <StatsCard label="평균 강도" value={`${stats?.avgIntensity}/10`} icon={<TrendingUp className="text-white" size={18} />} colorClass="bg-orange-500" />
+                  <StatsCard label="훈련 횟수" value={`${stats?.totalCount}회`} icon={<Calendar className="text-white" size={18} />} colorClass="bg-slate-800" />
                 </div>
 
-                <div className="bg-[#2D2926] text-white p-8 rounded-[2rem] shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <Zap size={120} />
+                {/* Philosophy Card */}
+                <div className="bg-[#2D2926] text-white p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden flex-grow">
+                  <div className="absolute -bottom-10 -right-10 p-4 opacity-5">
+                    <Zap size={200} />
                   </div>
-                  <div className="relative z-10">
-                    <h3 className="text-orange-400 font-black text-sm uppercase tracking-widest mb-4 flex items-center gap-2">
-                      <Zap size={16} /> Training Philosophy
+                  <div className="relative z-10 h-full flex flex-col">
+                    <h3 className="text-orange-400 font-black text-[10px] uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                      <Zap size={14} fill="currentColor" /> Club Philosophy
                     </h3>
-                    <p className="text-lg md:text-xl font-bold leading-relaxed mb-6">
-                      "우리 굿송은 <span className="text-orange-400">양극화 8:2 훈련</span>을 지향합니다. 
-                      주중엔 최대한 평소에 <span className="text-orange-400">존 2 심박</span>을 보면서 조깅을 해주시고, 
-                      합동 훈련에서는 <span className="text-orange-400">존 4 심박 이상</span>을 도전해보는걸 추천드립니다."
+                    <p className="text-lg font-bold leading-tight mb-4 font-display">
+                      우리 굿송은 <span className="text-orange-400">양극화 8:2 훈련</span>을 지향합니다.
+                    </p>
+                    <p className="text-[11px] font-bold text-white/60 leading-relaxed mb-8 break-keep">
+                      주중엔 최대한 평소에 존 2 심박을 보면서 조깅을 해주시고, 합동 훈련에서는 존 4 심박 이상을 도전해보는걸 추천드립니다.
                     </p>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-                      <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
-                        <div className="text-white/50 text-xs font-black uppercase tracking-widest mb-2">Zone 2 (Jogging)</div>
-                        <div className="text-2xl font-black text-orange-400">
-                          {Math.round(maxHeartRate * 0.6)} - {Math.round(maxHeartRate * 0.7)} <span className="text-xs text-white/50">BPM</span>
-                        </div>
+                    <div className="space-y-4 mb-8">
+                      <div className="flex justify-between items-end border-b border-white/10 pb-2">
+                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Zone 2 (Jogging)</span>
+                        <span className="text-xl font-black text-orange-400 font-display">
+                          {Math.round(maxHeartRate * 0.6)}-{Math.round(maxHeartRate * 0.7)} <span className="text-[10px] text-white/30">BPM</span>
+                        </span>
                       </div>
-                      <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/10">
-                        <div className="text-white/50 text-xs font-black uppercase tracking-widest mb-2">Zone 4 (High Intensity)</div>
-                        <div className="text-2xl font-black text-rose-400">
-                          {Math.round(maxHeartRate * 0.8)} - {Math.round(maxHeartRate * 0.9)} <span className="text-xs text-white/50">BPM</span>
-                        </div>
+                      <div className="flex justify-between items-end border-b border-white/10 pb-2">
+                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Zone 4 (High)</span>
+                        <span className="text-xl font-black text-rose-400 font-display">
+                          {Math.round(maxHeartRate * 0.8)}-{Math.round(maxHeartRate * 0.9)} <span className="text-[10px] text-white/30">BPM</span>
+                        </span>
                       </div>
                     </div>
 
-                    <div className="mt-6 flex items-center gap-4">
-                      <label className="text-xs font-bold text-white/50 uppercase tracking-widest">Your Max HR:</label>
-                      <input 
-                        type="number" 
-                        value={maxHeartRate} 
-                        onChange={(e) => setMaxHeartRate(parseInt(e.target.value) || 0)}
-                        className="bg-white/10 border border-white/20 rounded-lg px-3 py-1 text-sm font-bold w-20 focus:outline-none focus:border-orange-400 transition-colors"
-                      />
+                    <div className="mt-auto pt-4 flex flex-col gap-2">
+                      <label className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">Adjust Max HR</label>
+                      <div className="flex items-center gap-3">
+                        <input 
+                          type="range" 
+                          min="150" 
+                          max="220" 
+                          value={maxHeartRate} 
+                          onChange={(e) => setMaxHeartRate(parseInt(e.target.value))}
+                          className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                        />
+                        <span className="font-black text-sm text-orange-400 w-8">{maxHeartRate}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatsCard label="평균 심박수" value={`${stats?.avgHeart} BPM`} icon={<Heart className="text-white" size={20} />} colorClass="bg-rose-500" />
-              <StatsCard label="평균 강도" value={`${stats?.avgIntensity}/10`} icon={<TrendingUp className="text-white" size={20} />} colorClass="bg-orange-500" />
-              <StatsCard label="훈련 횟수" value={`${stats?.totalCount}회`} icon={<Calendar className="text-white" size={20} />} colorClass="bg-slate-800" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {aiFeedback?.recommendations.map((rec, i) => (
-                <div key={i} className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col gap-4 group hover:border-orange-200 transition-all">
-                  <div className="bg-orange-100 w-12 h-12 rounded-xl flex items-center justify-center text-orange-600 font-black text-xl group-hover:bg-orange-500 group-hover:text-white transition-all">
-                    {i + 1}
+              {/* Recommendations Row */}
+              <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+                {aiFeedback?.recommendations.map((rec, i) => (
+                  <div key={i} className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col gap-6 group hover:border-orange-200 transition-all duration-300">
+                    <div className="bg-orange-50 w-14 h-14 rounded-2xl flex items-center justify-center text-orange-500 font-black text-2xl group-hover:bg-orange-500 group-hover:text-white transition-all duration-500 shadow-sm">
+                      {i + 1}
+                    </div>
+                    <p className="font-bold text-xl text-slate-800 leading-tight tracking-tight break-keep">{rec}</p>
                   </div>
-                  <p className="font-bold text-lg text-slate-800 leading-tight">{rec}</p>
-                </div>
-              ))}
-            </div>
-
-            <section className="bg-white rounded-[3rem] border border-slate-100 overflow-hidden shadow-sm">
-              <div className="p-8 border-b bg-slate-50/50">
-                <h3 className="font-black text-xl uppercase tracking-tighter italic">Training History</h3>
+                ))}
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                    <tr>
-                      <th className="px-8 py-4 text-left">Date</th>
-                      <th className="px-8 py-4 text-left">Activity</th>
-                      <th className="px-8 py-4 text-center">BPM</th>
-                      <th className="px-8 py-4 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {memberLogs.slice().reverse().map((log, i) => (
-                      <tr key={i} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-8 py-6 text-sm font-bold text-slate-400">{log.timestamp}</td>
-                        <td className="px-8 py-6">
-                          <div className="font-black text-slate-800">{log.trainingType}</div>
-                          {/* 코멘트 노출 부분(notes)을 제거했습니다. */}
-                        </td>
-                        <td className="px-8 py-6 text-center font-black text-orange-500">{log.duration}</td>
-                        <td className="px-8 py-6 text-right">
-                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${
-                            log.condition === 'Excellent' ? 'bg-emerald-500 text-white' :
-                            log.condition === 'Good' ? 'bg-orange-500 text-white' : 'bg-slate-400 text-white'
-                          }`}>
-                            {log.condition}
-                          </span>
-                        </td>
+
+              {/* History Table Card */}
+              <section className="lg:col-span-12 bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm">
+                <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                  <h3 className="font-black text-xl uppercase tracking-tighter italic font-display">Training History</h3>
+                  <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Last {memberLogs.length} Sessions</div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-white text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                      <tr>
+                        <th className="px-10 py-5 text-left">Date</th>
+                        <th className="px-10 py-5 text-left">Activity</th>
+                        <th className="px-10 py-5 text-center">Avg BPM</th>
+                        <th className="px-10 py-5 text-right">Condition</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {memberLogs.slice().reverse().map((log, i) => (
+                        <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
+                          <td className="px-10 py-6 text-sm font-bold text-slate-400">{log.timestamp}</td>
+                          <td className="px-10 py-6">
+                            <div className="font-black text-slate-800 text-lg tracking-tight group-hover:text-orange-500 transition-colors">{log.trainingType}</div>
+                          </td>
+                          <td className="px-10 py-6 text-center">
+                            <span className="font-black text-xl text-slate-900 font-display">{log.duration}</span>
+                            <span className="text-[10px] font-black text-slate-300 ml-1 uppercase">BPM</span>
+                          </td>
+                          <td className="px-10 py-6 text-right">
+                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${
+                              log.condition === 'Excellent' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                              log.condition === 'Good' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 
+                              'bg-slate-50 text-slate-500 border border-slate-100'
+                            }`}>
+                              {log.condition}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
           </div>
         )}
       </main>

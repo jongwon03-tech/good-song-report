@@ -4,7 +4,8 @@ export interface TrainingLog {
   name: string;
   trainingType: string;
   intensity: number; // 1-10
-  duration: number; // minutes
+  duration: number; // average heart rate (BPM)
+  maxHeartRate?: number; // maximum heart rate (BPM)
   notes: string;
   condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
 }
