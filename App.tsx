@@ -208,9 +208,9 @@ const App: React.FC = () => {
                   
                   <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 relative group hover:bg-orange-50/30 transition-colors duration-500">
                     <Quote className="text-slate-200 absolute -top-2 -left-2 group-hover:text-orange-200 transition-colors" size={60} />
-                    <div className="space-y-4 relative z-10 pl-4">
-                      {aiFeedback?.aiInsight.split('\n').filter(p => p.trim()).map((para, idx) => (
-                        <p key={idx} className="text-xl md:text-2xl font-bold text-slate-800 italic leading-relaxed break-keep">
+                    <div className="space-y-6 relative z-10 pl-4">
+                      {aiFeedback?.aiInsight.split(/\\n|\n/).filter(p => p.trim()).map((para, idx) => (
+                        <p key={idx} className="text-xl md:text-2xl font-bold text-slate-800 italic leading-relaxed break-keep text-justify">
                           {para}
                         </p>
                       ))}
