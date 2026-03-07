@@ -8,6 +8,7 @@ export interface TrainingLog {
   maxHeartRate?: number; // maximum heart rate (BPM)
   notes: string;
   condition: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+  source?: 'Attendance' | 'Strava';
 }
 
 export interface FeedbackSummary {
@@ -15,6 +16,7 @@ export interface FeedbackSummary {
   totalWorkouts: number;
   averageIntensity: number;
   totalDuration: number;
-  aiInsight: string;
+  stravaAnalysis: string;
+  coachingAnalysis: string;
   recommendations: string[];
 }
