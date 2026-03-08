@@ -236,7 +236,7 @@ const App: React.FC = () => {
 
   const handleSearch = async (name: string) => {
     const trimmed = name.trim();
-    if (!trimmed) return;
+    if (!trimmed || loading) return;
     
     setLoading(true);
     try {
