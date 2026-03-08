@@ -27,13 +27,14 @@ Strava 데이터 - 금주 수집 데이터 기준 -
 - 평균 페이스(avg_pace): ${stravaSummary.pace}
 - 최장 거리(longest): ${stravaSummary.longest}
 - 획득 고도(elev_gain): ${stravaSummary.elevation}
+- 이번 주 뛴 횟수(runs): ${stravaSummary.runs}
 ` : "Strava 연동 정보가 없습니다.";
 
   const prompt = `[역할 정의]
 너는 '굿모닝 송도 러닝클럽(GSRC)'의 전문 AI 코치야. 제공된 구글 시트의 데이터를 통합 분석하여, 회원별 개인 맞춤형 러닝 분석 리포트를 작성해줘.
 
 [데이터 우선순위]
-1. Strava 데이터: 본인 시계에서 자동으로 수집된 데이터이므로 가장 정확도가 높음. Strava 데이터가 있는 경우 이를 최우선으로 분석에 반영할 것.
+1. Strava 데이터: 본인 시계에서 자동으로 수집된 데이터이므로 가장 정확도가 높음. 특히 '이번 주 뛴 횟수(runs)'는 출석 데이터보다 Strava 데이터를 최우선 기준으로 삼아야 함.
 2. 출석데이터: 매주 토요일 정규훈련에 참석한 사람이 직접 기재한 데이터.
 
 [분석 및 리포트 작성 지침]
@@ -76,7 +77,7 @@ ${logSummary}`;
             },
             coachingAnalysis: { 
               type: Type.STRING,
-              description: "정규훈련 데이터 및 전반적인 러닝 성향 기반 코칭 내용"
+              description: "Strava 훈련 빈도(횟수)와 정규훈련 데이터를 결합한 전반적인 러닝 성향 기반 코칭 내용"
             },
             recommendations: { 
               type: Type.ARRAY, 

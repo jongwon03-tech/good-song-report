@@ -169,9 +169,8 @@ const App: React.FC = () => {
             pace: row[4]?.toString().trim() || '',
             longest: row[2]?.toString().trim() || '',
             elevation: row[5]?.toString().trim() || '',
-            // runs and rank are no longer in the simplified sheet structure
-            runs: '',
-            rank: ''
+            runs: row[7]?.toString().trim() || '',
+            rank: row[6]?.toString().trim() || ''
           };
         } else {
           // If no match found in members, but we have a name in Col A, use it directly as a fallback
@@ -181,8 +180,8 @@ const App: React.FC = () => {
               pace: row[4]?.toString().trim() || '',
               longest: row[2]?.toString().trim() || '',
               elevation: row[5]?.toString().trim() || '',
-              runs: '',
-              rank: ''
+              runs: row[7]?.toString().trim() || '',
+              rank: row[6]?.toString().trim() || ''
             };
           }
         }
