@@ -121,24 +121,46 @@ const App: React.FC = () => {
       
       const summaries: Record<string, any> = {};
       
+      // Determine indices dynamically to prevent any column shifting / mismatch issues!
+      let nameCol = 0;
+      let athleteCol = 1;
+      let longestCol = 2;
+      let distanceCol = 3;
+      let paceCol = 4;
+      let elevCol = 5;
+      let rankCol = 6;
+      let runsCol = 7;
+
+      if (stravaResult.data && stravaResult.data.length > 0) {
+        const headerRow = (stravaResult.data as any[])[0].map((h: any) => cleanString(h?.toString() || ''));
+        
+        const nameIdx = headerRow.findIndex((h: string) => h === '이름' || h.includes('name'));
+        const athleteIdx = headerRow.findIndex((h: string) => h === 'athlete' || h.includes('id') || h.includes('선수'));
+        const longestIdx = headerRow.findIndex((h: string) => h === 'longest' || h.includes('최장'));
+        const distanceIdx = headerRow.findIndex((h: string) => h === 'distance' || h.includes('거리') || h.includes('총거리'));
+        const paceIdx = headerRow.findIndex((h: string) => h === 'avgpace' || h === 'pace' || h.includes('페이스'));
+        const elevIdx = headerRow.findIndex((h: string) => h === 'elevgain' || h.includes('고도') || h.includes('획득'));
+        const rankIdx = headerRow.findIndex((h: string) => h === 'rank' || h.includes('순위') || h.includes('랭킹') || h.includes('clubrank'));
+        const runsIdx = headerRow.findIndex((h: string) => h === 'runs' || h.includes('횟수') || h.includes('회수') || h.includes('runcount'));
+
+        if (nameIdx !== -1) nameCol = nameIdx;
+        if (athleteIdx !== -1) athleteCol = athleteIdx;
+        if (longestIdx !== -1) longestCol = longestIdx;
+        if (distanceIdx !== -1) distanceCol = distanceIdx;
+        if (paceIdx !== -1) paceCol = paceIdx;
+        if (elevIdx !== -1) elevCol = elevIdx;
+        if (rankIdx !== -1) rankCol = rankIdx;
+        if (runsIdx !== -1) runsCol = runsIdx;
+      }
+      
       // Skip header row (index 0)
       const stravaRows = stravaResult.data.slice(1);
       
       stravaRows.forEach((row: any) => {
         if (!row || row.length < 2) return;
 
-        // Indices based on the latest screenshot (Step 58):
-        // 0: 이름 (Col A) - User manually added
-        // 1: athlete (Col B)
-        // 2: longest (Col C)
-        // 3: distance (Col D)
-        // 4: avg_pace (Col E)
-        // 5: elev_gain (Col F)
-        // 6: rank (Col G)
-        // 7: runs (Col H)
-
-        const nameFromColA = row[0]?.toString().trim() || '';
-        const idFromColB = row[1]?.toString().trim() || '';
+        const nameFromColA = row[nameCol]?.toString().trim() || '';
+        const idFromColB = row[athleteCol]?.toString().trim() || '';
 
         if (!nameFromColA && !idFromColB) return;
 
@@ -165,23 +187,23 @@ const App: React.FC = () => {
         
         if (matchedMemberName) {
           summaries[matchedMemberName] = {
-            distance: row[3]?.toString().trim() || '',
-            pace: row[4]?.toString().trim() || '',
-            longest: row[2]?.toString().trim() || '',
-            elevation: row[5]?.toString().trim() || '',
-            runs: row[7]?.toString().trim() || '',
-            rank: row[6]?.toString().trim() || ''
+            distance: row[distanceCol]?.toString().trim() || '',
+            pace: row[paceCol]?.toString().trim() || '',
+            longest: row[longestCol]?.toString().trim() || '',
+            elevation: row[elevCol]?.toString().trim() || '',
+            runs: row[runsCol]?.toString().trim() || '',
+            rank: row[rankCol]?.toString().trim() || ''
           };
         } else {
           // If no match found in members, but we have a name in Col A, use it directly as a fallback
           if (cleanNameA) {
             summaries[nameFromColA] = {
-              distance: row[3]?.toString().trim() || '',
-              pace: row[4]?.toString().trim() || '',
-              longest: row[2]?.toString().trim() || '',
-              elevation: row[5]?.toString().trim() || '',
-              runs: row[7]?.toString().trim() || '',
-              rank: row[6]?.toString().trim() || ''
+              distance: row[distanceCol]?.toString().trim() || '',
+              pace: row[paceCol]?.toString().trim() || '',
+              longest: row[longestCol]?.toString().trim() || '',
+              elevation: row[elevCol]?.toString().trim() || '',
+              runs: row[runsCol]?.toString().trim() || '',
+              rank: row[rankCol]?.toString().trim() || ''
             };
           }
         }
